@@ -1,0 +1,9 @@
+{
+  "$schema": "https://antigravity.google/schemas/v1/plugin.json",
+  "name": "open-design-plugin",
+  "version": "1.0.0",
+  "description": "OpenDesign UI/UX 迭代強化器，整合 150+ 專業設計 Skills、154 套品牌 Design Systems (含 Tailwind v4 CSS Tokens) 與 OpenDesign 本地 MCP 工具集。",
+  "author": {
+    "name": "OpenDesign & Liber Press"
+  }
+}
