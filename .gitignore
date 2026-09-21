@@ -1,2 +1,10 @@
 .DS_Store
 *.log
+__pycache__/
+/skills/*
+!/skills/setup/
+/design-systems
+/design-templates
+/rules/
+/mcp_config.json
+/.opendesign-setup.json

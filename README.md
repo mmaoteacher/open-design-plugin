@@ -1,84 +1,76 @@
-# OpenDesign Plugin (for Antigravity / Gemini CLI)
+# OpenDesign Plugin（agy / Antigravity）
 
-OpenDesign UI/UX 迭代強化器外掛，整合 150+ 專業設計 Skills、154 套品牌 Design Systems（含 Tailwind v4 CSS Tokens）、OpenDesign 本地 MCP 工具集，以及反 AI 俗套（Anti-AI-Slop）高審美前端工程規範。
+讓 agy 使用本機 Open Design.app 的 skills、design systems、templates 與 MCP。
+此 repository 只提供 setup skill 與整合程式，不收錄 OpenDesign 的原始 skills 或設計資源。
 
----
+## 安裝
 
-## 📦 核心內容
-
-1. **150+ 專業設計 Skills (`skills/`)**：
-   - 涵蓋簡報演講（`ppt-keynote`, `slides`, `deck-*`）、海報雜誌（`article-magazine`, `poster-hero`）、動態動畫（`gsap-*`, `emilkowalski-motion`, `remotion`）、向量與 3D 視覺（`threejs`, `shader-dev`, `hand-drawn-diagrams`）等。
-2. **154 套品牌 Design Systems (`design-systems/`)**：
-   - Apple HIG, Linear, Airbnb, Arc, Cal, Bento, Stripe, BMW 等品牌 Tokens 與設計系統連結。
-3. **OpenDesign MCP Server (`mcp_config.json`)**：
-   - 與本機 Open Design.app 畫布即時連動，支援 `create_artifact`, `get_artifact`, `start_run` 等工具。
-4. **高審美 UI/UX 規範契約 (`rules/AGENTS.md`)**：
-   - 強制約束視覺階層（Hierarchy）、無障礙（Accessibility）、響應式（Responsiveness）與動態紀律（Motion Discipline）。
-
----
-
-## 🚀 跨機器快速複製配置 (Quick Setup)
-
-在任何新機器上，只需執行以下步驟即可快速完成配置：
-
-### 1. 前置需求 (Prerequisites)
-- **macOS**
-- **Node.js**（MCP Server 執行環境）
-- **Open Design.app**（預設安裝於 `/Applications/Open Design.app`）
-- **Antigravity / Gemini CLI**
-
-### 2. 一鍵 Clone 與初始化 (One-Line Setup)
-
-打開終端機執行：
+需要 macOS、Python 3、Node.js，以及已安裝的 Open Design.app。
 
 ```bash
-# 確保 plugins 目錄存在，並 Clone 儲存庫
-mkdir -p ~/.gemini/config/plugins
-git clone git@github.com:mmaoteacher/open-design-plugin.git ~/.gemini/config/plugins/open-design-plugin
+git clone https://github.com/mmaoteacher/open-design-plugin.git \
+  ~/.gemini/config/plugins/open-design-plugin
+```
 
-# 執行初始化健康檢查與軟連結建立
+重新啟動 agy，請 agent「執行 open-design-plugin 的 setup skill」。
+首次安裝只會發現 `setup`，尚未註冊 OpenDesign MCP。
+也可以直接執行：
+
+```bash
 cd ~/.gemini/config/plugins/open-design-plugin
+./setup.sh --dry-run
 ./setup.sh
 ```
 
-> **提示**：若使用 HTTPS，請將 clone 網址改為：  
-> `git clone https://github.com/mmaoteacher/open-design-plugin.git ~/.gemini/config/plugins/open-design-plugin`
+Setup 會依序搜尋 `/Applications/Open Design.app`、`~/Applications/Open Design.app`。
+自訂位置可使用以下任一方式，明確指定的錯誤路徑會報錯：
 
-### 3. 自訂 Open Design.app 路徑（非預設安裝位置時）
-若 Open Design.app 安裝於其他路徑，可指定環境變數執行 `setup.sh`：
 ```bash
+./setup.sh --app "/path/to/Open Design.app"
 OPEN_DESIGN_APP_PATH="/path/to/Open Design.app" ./setup.sh
 ```
 
----
+完成後開啟 Open Design.app，並重新啟動 agy 載入新增 skills 與 MCP。
+Setup 驗證本機檔案與配置；MCP 連線需 app 的 daemon 在 `127.0.0.1:7456` 運作。
+此專案使用 agy plugin 格式；未驗證原生 Gemini CLI extension 安裝相容性。
 
-## ⚙️ 專案結構
+## Setup 做了什麼
 
+- 將 app 內含 `SKILL.md` 的 skill 資料夾逐一連結到 `skills/`，保留旁邊的 scripts、references 與 assets。
+- 連結 `design-systems`、`design-templates` 至 app 本機資源。
+- 產生本專案的 `opendesign-systems` 整合 skill 與 UI/UX 規則。
+- 以找到的 Node.js 與 app daemon 入口產生 `mcp_config.json`；優先使用固定入口，舊版才尋找唯一的 `cli-*.mjs`。
+- 記錄已管理的檔案；重跑會更新連結、移除已消失的 skill 連結。遇到使用者修改或未管理的同名內容會停止並保留原檔。
+
+不會下載或修改 app，也不會刪除其他 plugin。功能數量依本機 app 版本而定；部分內建 skills 是上游入口，依其說明使用，不代表上游依賴已安裝。
+App 更新或搬移後請重跑 setup。連結的內容會隨本機 app 更新。
+
+## Repository 結構
+
+```text
+plugin.json               # 公開 plugin metadata
+skills/setup/SKILL.md      # 初始唯一 skill
+setup.sh                  # setup 入口
+scripts/setup.py          # 本機偵測、驗證及配置
+templates/               # 本專案整合 skill / 規則範本
+tests/                   # 隔離的 setup 行為測試
 ```
-open-design-plugin/
-├── plugin.json         # 外掛描述與版本資訊
-├── mcp_config.json      # OpenDesign MCP 伺服器啟動配置
-├── setup.sh            # 跨機器一鍵檢查與符號連結修復腳本
-├── rules/
-│   └── AGENTS.md       # OpenDesign UI/UX 規範與設計工程契約
-├── skills/             # 150+ 模組化設計技能目錄
-├── design-systems      # 符號連結 -> Open Design.app 內建 154 套品牌系統
-└── design-templates    # 符號連結 -> Open Design.app 內建模板資源
+
+Setup 產生的 skills 連結、資源連結、rules、MCP 配置與狀態記錄都在 `.gitignore` 中。
+請勿使用 `git add -f` 將它們加入 repository。
+
+## 從 1.x 升級
+
+先備份自行修改的 skills、rules 與 MCP 配置，再更新 repository。
+舊版本追蹤的 OpenDesign 內容在 2.x 移除，更新後執行 setup 即可重建本地整合。
+若殘留未追蹤的同名目錄，setup 會指出衝突；先將該目錄移到備份位置，再重跑。
+
+移除目前版本的檔案不會清除 Git 歷史中已提交的內容。若要連歷史也不含原始內容，
+需另外建立乾淨歷史或新 repository；此變更不重寫歷史。
+
+## 開發驗證
+
+```bash
+python3 -m unittest discover -s tests -v
+agy plugin validate .
 ```
-
----
-
-## 🔄 日常維護與同步
-
-- **拉取最新配置**：
-  ```bash
-  cd ~/.gemini/config/plugins/open-design-plugin
-  git pull
-  ```
-- **提交本地修改**：
-  ```bash
-  cd ~/.gemini/config/plugins/open-design-plugin
-  git add .
-  git commit -m "feat(skills): update custom skills"
-  git push
-  ```
