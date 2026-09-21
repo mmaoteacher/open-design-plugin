@@ -11,7 +11,9 @@ ROOT = Path(__file__).resolve().parent.parent
 STATE = '.opendesign-setup.json'
 
 
-def configure(root, app, node, dry_run=False):
+def configure(root, app, node, dry_run=False, agent="agy"):
+    if agent not in ("agy", "claude", "codex"):
+        raise ValueError(f"Unsupported agent: {agent}")
     resources = app / 'Contents/Resources/open-design'
     for name in ('skills', 'design-systems', 'design-templates'):
         if not (resources / name).is_dir():
@@ -31,18 +33,28 @@ def configure(root, app, node, dry_run=False):
         raise ValueError('Local skills conflict with setup or opendesign-systems.')
     links = {f'skills/{p.name}': str(p) for p in skills}
     links.update({name: str(resources / name) for name in ('design-systems', 'design-templates')})
-    files = {
-        'mcp_config.json': json.dumps({'mcpServers': {'open-design': {
-            'type': 'command', 'command': node,
-            'args': [str(cli), 'mcp', '--daemon-url', 'http://127.0.0.1:7456']
-        }}}, indent=2) + '\n',
-        'rules/AGENTS.md': (root / 'templates/AGENTS.md').read_text().replace(
-            '~/.gemini/config/plugins/open-design-plugin', str(root)),
-        'skills/opendesign-systems/SKILL.md': (root / 'templates/design-systems.md').read_text().replace(
-            '~/.gemini/config/plugins/open-design-plugin', str(root)),
-    }
     state_path = root / STATE
+    if state_path.is_symlink():
+        raise ValueError(f'Unsafe setup state symlink: {state_path}')
     previous = json.loads(state_path.read_text()) if state_path.exists() else {'links': {}, 'files': {}}
+    # Keep other explicitly configured hosts working when sharing a development copy.
+    agents = set(previous.get('agents', ['agy'] if previous['files'] else [])) | {agent}
+    server = {'command': node,
+              'args': [str(cli), 'mcp', '--daemon-url', 'http://127.0.0.1:7456']}
+    rules = (root / 'templates/AGENTS.md').read_text().replace(
+        '~/.gemini/config/plugins/open-design-plugin', str(root))
+    systems = (root / 'templates/design-systems.md').read_text().replace(
+        '~/.gemini/config/plugins/open-design-plugin', str(root))
+    files = {
+        'rules/AGENTS.md': rules,
+        'skills/opendesign-systems/SKILL.md': systems,
+    }
+    if 'agy' in agents:
+        files['mcp_config.json'] = json.dumps({'mcpServers': {
+            'open-design': dict(server, type='command')}}, indent=2) + '\n'
+    if agents & {'claude', 'codex'}:
+        files['.mcp.json'] = json.dumps({'mcpServers': {
+            'open-design': dict(server, type='stdio')}}, indent=2) + '\n'
     # Only touch paths managed by this installer; never follow destination symlinks.
     all_names = set(links) | set(files) | set(previous['links']) | set(previous['files'])
     for name in all_names:
@@ -81,14 +93,17 @@ def configure(root, app, node, dry_run=False):
         dest = root / name
         dest.parent.mkdir(parents=True, exist_ok=True)
         dest.write_text(content)
-    state_path.write_text(json.dumps({'app': str(app), 'links': links, 'files': files}, indent=2) + '\n')
-    print('Configuration complete. Open Open Design.app and restart agy to reload skills and MCP.')
+    state_path.write_text(json.dumps({'app': str(app), 'agents': sorted(agents), 'links': links, 'files': files}, indent=2) + '\n')
+    print(f'Configured agents: {", ".join(sorted(agents))}')
+    print('Open Open Design.app, restart the selected CLI and start a new session to reload skills and MCP.')
 
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--app', help='Explicit Open Design.app path (also OPEN_DESIGN_APP_PATH)')
     parser.add_argument('--dry-run', action='store_true')
+    parser.add_argument('--agent', choices=('agy', 'claude', 'cc', 'codex'), default='agy',
+                        help='Target CLI (cc aliases claude); defaults to agy for compatibility')
     args = parser.parse_args()
     explicit = args.app or os.environ.get('OPEN_DESIGN_APP_PATH')
     candidates = [Path(explicit).expanduser()] if explicit else [
@@ -99,7 +114,7 @@ def main():
     node = shutil.which('node')
     if not node:
         raise ValueError('Node.js is required; install it and rerun setup.')
-    configure(ROOT, app, node, args.dry_run)
+    configure(ROOT, app, node, args.dry_run, 'claude' if args.agent == 'cc' else args.agent)
 
 
 if __name__ == '__main__':

@@ -1,0 +1,21 @@
+{
+  "name": "open-design-plugin",
+  "version": "2.1.0",
+  "description": "Setup-only integration for local Open Design.app skills, design resources, and MCP. No bundled OpenDesign content.",
+  "author": {
+    "name": "mmaoteacher"
+  },
+  "repository": "https://github.com/mmaoteacher/open-design-plugin",
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "OpenDesign",
+    "shortDescription": "Connect your local Open Design resources",
+    "longDescription": "Setup-only integration for local Open Design.app skills, design resources, and MCP. No bundled OpenDesign content.",
+    "developerName": "mmaoteacher",
+    "category": "Productivity",
+    "capabilities": [],
+    "defaultPrompt": [
+      "Set up OpenDesign using my local Open Design.app installation."
+    ]
+  }
+}

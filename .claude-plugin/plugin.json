@@ -1,5 +1,4 @@
 {
-  "$schema": "https://antigravity.google/schemas/v1/plugin.json",
   "name": "open-design-plugin",
   "version": "2.1.0",
   "description": "Setup-only integration for local Open Design.app skills, design resources, and MCP. No bundled OpenDesign content.",

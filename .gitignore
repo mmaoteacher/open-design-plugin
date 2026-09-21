@@ -8,3 +8,4 @@ __pycache__/
 /rules/
 /mcp_config.json
 /.opendesign-setup.json
+/.mcp.json

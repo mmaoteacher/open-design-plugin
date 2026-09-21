@@ -110,6 +110,58 @@ class SetupTest(unittest.TestCase):
             self.run_setup()
         self.assertFalse((self.root / setup.STATE).exists())
 
+    def test_claude_and_codex_use_stdio_without_agy_config(self):
+        for agent in ('claude', 'codex'):
+            with self.subTest(agent=agent):
+                setup.configure(self.root, self.app, '/node path/node', agent=agent)
+                config = json.loads((self.root / '.mcp.json').read_text())
+                server = config['mcpServers']['open-design']
+                self.assertEqual(server['type'], 'stdio')
+                self.assertEqual(server['args'][0], str(self.cli))
+                self.assertFalse((self.root / 'mcp_config.json').exists())
+                state = (self.root / setup.STATE).read_text()
+                setup.configure(self.root, self.app, '/node path/node', agent=agent)
+                self.assertEqual(state, (self.root / setup.STATE).read_text())
+
+    def test_adding_host_preserves_existing_configuration(self):
+        self.run_setup()
+        agy_config = (self.root / 'mcp_config.json').read_text()
+        setup.configure(self.root, self.app, '/node path/node', agent='codex')
+        self.assertEqual(agy_config, (self.root / 'mcp_config.json').read_text())
+        self.assertTrue((self.root / '.mcp.json').is_file())
+        self.run_setup()
+        self.assertTrue((self.root / '.mcp.json').is_file())
+
+    def test_v2_state_migrates_without_losing_agy(self):
+        self.run_setup()
+        state_path = self.root / setup.STATE
+        state = json.loads(state_path.read_text())
+        del state['agents']
+        state_path.write_text(json.dumps(state))
+        setup.configure(self.root, self.app, '/node path/node', agent='claude')
+        self.assertEqual(json.loads(state_path.read_text())['agents'], ['agy', 'claude'])
+        self.assertTrue((self.root / 'mcp_config.json').exists())
+
+    def test_stdio_conflict_is_detected_before_writing_links(self):
+        (self.root / '.mcp.json').write_text('my configuration')
+        with self.assertRaises(ValueError):
+            setup.configure(self.root, self.app, '/node path/node', agent='codex')
+        self.assertFalse((self.root / 'skills/example').is_symlink())
+        self.assertEqual((self.root / '.mcp.json').read_text(), 'my configuration')
+
+    def test_other_agent_rejected_without_writing(self):
+        with self.assertRaises(ValueError):
+            setup.configure(self.root, self.app, '/node path/node', agent='opencode')
+        self.assertFalse((self.root / setup.STATE).exists())
+
+    def test_state_symlink_is_not_overwritten(self):
+        target = Path(self.temp.name) / 'outside.json'
+        target.write_text('{}')
+        (self.root / setup.STATE).symlink_to(target)
+        with self.assertRaises(ValueError):
+            self.run_setup()
+        self.assertEqual(target.read_text(), '{}')
+
 
 if __name__ == '__main__':
     unittest.main()

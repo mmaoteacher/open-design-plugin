@@ -43,3 +43,8 @@ triggers:
 1. 根據使用者的風格訴求，讀取目標品牌資料夾中的 `tailwind-v4.css` 或 `tokens.css`。
 2. 將對應的 color palette、radius、font scale 等 tokens 映射至專案的 Tailwind 或元件樣式。
 3. 遵循對應的 `DESIGN.md` 規範撰寫高水準的前端元件。
+
+## UI/UX 整合規則
+
+進行設計工作時，先讀取本 plugin 的 `../../rules/AGENTS.md`，再選擇設計系統。
+此路徑相對於本 SKILL.md 所在資料夾；不要假設 host 會自動載入 plugin 的 rules 目錄。

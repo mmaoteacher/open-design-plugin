@@ -8,8 +8,8 @@
 - Codex
 - Antigravity（agy）
 
-OpenCode 不在支援範圍。現在已實作及驗證 agy；cc 與 Codex 的相容入口、安裝流程及載入驗證仍待實作。
-不要將規劃中的平台標示為已支援。
+OpenCode 不在支援範圍。三者共用 setup 與資源連結邏輯，各有獨立 manifest／MCP 格式。
+實測範圍見 tests/VALIDATION.md；不要將設定檢查宣稱為完整互動工作流驗收。
 
 ## 維護與安裝分離
 
@@ -29,5 +29,7 @@ OpenCode 不在支援範圍。現在已實作及驗證 agy；cc 與 Codex 的相
 
 setup 邏輯變更執行 `python3 -m unittest discover -s tests -v`。
 agy 格式可用 `agy plugin validate .` 驗證。
-新增 cc／Codex 支援時，分別驗證初始僅有 setup、setup 後 skills／MCP 載入及重跑行為；
+修改 cc／Codex 支援時，分別驗證初始僅有 setup、setup 後 skills／MCP 載入及重跑行為；
 涉及使用者安裝的操作，先以隔離目錄測試。無法實測的部分需明確記錄。
+
+三份 plugin manifest 的版本需同步。CLI 更新可能替換 cache，需維持安裝後可重新執行 setup。

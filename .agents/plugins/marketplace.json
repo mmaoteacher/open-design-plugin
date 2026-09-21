@@ -1,0 +1,20 @@
+{
+  "name": "open-design",
+  "interface": {
+    "displayName": "OpenDesign"
+  },
+  "plugins": [
+    {
+      "name": "open-design-plugin",
+      "source": {
+        "source": "local",
+        "path": "./"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Productivity"
+    }
+  ]
+}
