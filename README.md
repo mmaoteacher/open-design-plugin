@@ -1,7 +1,20 @@
-# OpenDesign Plugin（agy / Antigravity）
+# OpenDesign Plugin
 
 讓 agy 使用本機 Open Design.app 的 skills、design systems、templates 與 MCP。
 此 repository 只提供 setup skill 與整合程式，不收錄 OpenDesign 的原始 skills 或設計資源。
+
+## CLI 支援範圍
+
+| CLI agent | 狀態 |
+| --- | --- |
+| Antigravity（agy） | 已實作，已驗證本機 setup 與 plugin 載入 |
+| Claude Code（cc） | 規劃中，待新增相容設定及驗證 |
+| Codex | 規劃中，待新增相容設定及驗證 |
+
+OpenCode 不在支援範圍。下方安裝步驟目前適用於 agy。
+
+開發時使用獨立 checkout，例如 `~/Documents/workspace/mmao/open-design-plugin`；
+CLI 的安裝目錄保留作執行用途。維護原則見 [AGENTS.md](AGENTS.md)。
 
 ## 安裝
 
